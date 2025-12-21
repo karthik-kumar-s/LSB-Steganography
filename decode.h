@@ -29,5 +29,6 @@ Status decode_secret_file_size(DecodeInfo *decInfo);
 Status decode_magic_string(DecodeInfo *decInfo);
 Status decode_secret_file_extn_size(DecodeInfo *decInfo);
 Status decode_secret_file_extn(DecodeInfo *decInfo);
+Status decode_secret_file_data(DecodeInfo *decInfo);
 
 #endif

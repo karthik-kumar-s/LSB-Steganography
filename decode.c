@@ -23,6 +23,7 @@ Status do_decoding(DecodeInfo *decInfo)
 
     decode_secret_file_extn_size(decInfo);
     decode_secret_file_extn(decInfo);
+    decode_secret_file_data(decInfo);
 
     return e_success;
 }
@@ -127,6 +128,21 @@ Status decode_secret_file_extn(DecodeInfo *decInfo)
     {
         perror("fopen");
         return e_failure;
+    }
+
+    return e_success;
+}
+
+// Decode secret file data and write to output file
+Status decode_secret_file_data(DecodeInfo *decInfo)
+{
+    char ch;
+
+    // Decode each byte of secret file
+    for (uint i = 0; i < decInfo->secret_file_size; i++)
+    {
+        decode_lsb_to_byte(&ch, decInfo->fptr_stego_image);
+        fwrite(&ch, 1, 1, decInfo->fptr_output);
     }
 
     return e_success;
