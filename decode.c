@@ -18,7 +18,10 @@ Status do_decoding(DecodeInfo *decInfo)
     }
     // Decode secret file size
     decode_secret_file_size(decInfo);
-    
+    printf("Decoded secret file size: %u bytes\n",
+           decInfo->secret_file_size);
+
+    decode_secret_file_extn_size(decInfo);
     return e_success;
 }
 
@@ -66,7 +69,7 @@ Status decode_magic_string(DecodeInfo *decInfo)
     return e_success;
 }
 
-// Decode secret file size (stored using 32 bits) 
+// Decode secret file size (stored using 32 bits)
 Status decode_secret_file_size(DecodeInfo *decInfo)
 {
     char image_byte;
@@ -77,6 +80,23 @@ Status decode_secret_file_size(DecodeInfo *decInfo)
         fread(&image_byte, 1, 1, decInfo->fptr_stego_image);
         decInfo->secret_file_size =
             (decInfo->secret_file_size << 1) | (image_byte & 1);
+    }
+
+    return e_success;
+}
+
+// Decode secret file extension size
+Status decode_secret_file_extn_size(DecodeInfo *decInfo)
+{
+    char image_byte;
+    decInfo->extn_size = 0;
+
+    // Extension size is stored using 32 bits
+    for (int i = 0; i < 32; i++)
+    {
+        fread(&image_byte, 1, 1, decInfo->fptr_stego_image);
+        decInfo->extn_size =
+            (decInfo->extn_size << 1) | (image_byte & 1);
     }
 
     return e_success;
