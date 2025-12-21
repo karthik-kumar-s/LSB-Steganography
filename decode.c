@@ -16,7 +16,9 @@ Status do_decoding(DecodeInfo *decInfo)
         printf("Magic string mismatch\n");
         return e_failure;
     }
-
+    // Decode secret file size
+    decode_secret_file_size(decInfo);
+    
     return e_success;
 }
 
@@ -64,3 +66,18 @@ Status decode_magic_string(DecodeInfo *decInfo)
     return e_success;
 }
 
+// Decode secret file size (stored using 32 bits) 
+Status decode_secret_file_size(DecodeInfo *decInfo)
+{
+    char image_byte;
+    decInfo->secret_file_size = 0;
+
+    for (int i = 0; i < 32; i++)
+    {
+        fread(&image_byte, 1, 1, decInfo->fptr_stego_image);
+        decInfo->secret_file_size =
+            (decInfo->secret_file_size << 1) | (image_byte & 1);
+    }
+
+    return e_success;
+}

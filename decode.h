@@ -25,5 +25,6 @@ typedef struct _DecodeInfo
 Status do_decoding(DecodeInfo *decInfo);
 Status open_files(DecodeInfo *decInfo);
 Status decode_lsb_to_byte(char *data, FILE *fptr);
+Status decode_secret_file_size(DecodeInfo *decInfo);
 
 #endif
