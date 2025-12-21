@@ -22,6 +22,8 @@ Status do_decoding(DecodeInfo *decInfo)
            decInfo->secret_file_size);
 
     decode_secret_file_extn_size(decInfo);
+    decode_secret_file_extn(decInfo);
+
     return e_success;
 }
 
@@ -97,6 +99,34 @@ Status decode_secret_file_extn_size(DecodeInfo *decInfo)
         fread(&image_byte, 1, 1, decInfo->fptr_stego_image);
         decInfo->extn_size =
             (decInfo->extn_size << 1) | (image_byte & 1);
+    }
+
+    return e_success;
+}
+
+// Decode secret file extension and create output file
+Status decode_secret_file_extn(DecodeInfo *decInfo)
+{
+    // Decode extension characters
+    for (uint i = 0; i < decInfo->extn_size; i++)
+    {
+        decode_lsb_to_byte(&decInfo->secret_extn[i],
+                           decInfo->fptr_stego_image);
+    }
+
+    // Null terminate extension string
+    decInfo->secret_extn[decInfo->extn_size] = '\0';
+
+    // Create output file name (decoded.txt, decoded.c, etc)
+    sprintf(decInfo->output_fname, "decoded%s",
+            decInfo->secret_extn);
+
+    // Open output file
+    decInfo->fptr_output = fopen(decInfo->output_fname, "wb");
+    if (decInfo->fptr_output == NULL)
+    {
+        perror("fopen");
+        return e_failure;
     }
 
     return e_success;

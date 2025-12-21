@@ -28,5 +28,6 @@ Status decode_lsb_to_byte(char *data, FILE *fptr);
 Status decode_secret_file_size(DecodeInfo *decInfo);
 Status decode_magic_string(DecodeInfo *decInfo);
 Status decode_secret_file_extn_size(DecodeInfo *decInfo);
+Status decode_secret_file_extn(DecodeInfo *decInfo);
 
 #endif
