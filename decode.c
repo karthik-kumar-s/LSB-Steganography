@@ -10,6 +10,13 @@ Status do_decoding(DecodeInfo *decInfo)
     // Skip BMP header (first 54 bytes)
     fseek(decInfo->fptr_stego_image, BMP_HEADER_SIZE, SEEK_SET);
 
+    // Decode and verify magic string
+    if (decode_magic_string(decInfo) == e_failure)
+    {
+        printf("Magic string mismatch\n");
+        return e_failure;
+    }
+
     return e_success;
 }
 
@@ -56,3 +63,4 @@ Status decode_magic_string(DecodeInfo *decInfo)
 
     return e_success;
 }
+
