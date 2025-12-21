@@ -33,8 +33,8 @@ Status decode_lsb_to_byte(char *data, FILE *fptr)
 
     for (int i = 0; i < 8; i++)
     {
-        fread(&image_byte, 1, 1, fptr);          // Read one image byte
-        *data = (*data << 1) | (image_byte & 1); // Collect LSB
+        fread(&image_byte, 1, 1, fptr); // Read one image byte
+        *data = (*data << 1) | (image_byte & 1);
     }
     return e_success;
 }
