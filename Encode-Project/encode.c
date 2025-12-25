@@ -46,9 +46,9 @@ Status do_encoding(EncodeInfo *encInfo)
     copy_bmp_header(encInfo->fptr_src_image,
                     encInfo->fptr_stego_image);
 
-    encode_byte_to_lsb('A',
-                       encInfo->fptr_src_image,
-                       encInfo->fptr_stego_image);
+    encode_magic_string(MAGIC_STRING,
+                        encInfo->fptr_src_image,
+                        encInfo->fptr_stego_image);
 
     char ch;
     while (fread(&ch, 1, 1, encInfo->fptr_src_image))
@@ -74,4 +74,16 @@ void encode_byte_to_lsb(char data, FILE *fptr_src_image, FILE *fptr_stego_image)
 
     // Write modified bytes to stego image
     fwrite(image_buffer, 1, 8, fptr_stego_image);
+}
+
+void encode_magic_string(const char *magic,
+                         FILE *fptr_src_image,
+                         FILE *fptr_stego_image)
+{
+    for (int i = 0; magic[i] != '\0'; i++)
+    {
+        encode_byte_to_lsb(magic[i],
+                           fptr_src_image,
+                           fptr_stego_image);
+    }
 }
