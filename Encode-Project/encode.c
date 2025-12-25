@@ -46,9 +46,32 @@ Status do_encoding(EncodeInfo *encInfo)
     copy_bmp_header(encInfo->fptr_src_image,
                     encInfo->fptr_stego_image);
 
+    encode_byte_to_lsb('A',
+                       encInfo->fptr_src_image,
+                       encInfo->fptr_stego_image);
+
     char ch;
     while (fread(&ch, 1, 1, encInfo->fptr_src_image))
         fwrite(&ch, 1, 1, encInfo->fptr_stego_image);
 
     return e_success;
+}
+
+// * Encode one character (8 bits) into 8 bytes of image data using LSB
+void encode_byte_to_lsb(char data, FILE *fptr_src_image, FILE *fptr_stego_image)
+{
+    char image_buffer[8];
+
+    // Read 8 bytes from source image
+    fread(image_buffer, 1, 8, fptr_src_image);
+
+    // Modify LSB of each byte
+    for (int i = 0; i < 8; i++)
+    {
+        image_buffer[i] =
+            (image_buffer[i] & 0xFE) | ((data >> (7 - i)) & 1);
+    }
+
+    // Write modified bytes to stego image
+    fwrite(image_buffer, 1, 8, fptr_stego_image);
 }

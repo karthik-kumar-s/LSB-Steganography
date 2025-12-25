@@ -20,5 +20,6 @@ Status do_encoding(EncodeInfo *encInfo);
 Status open_files(EncodeInfo *encInfo);
 Status copy_bmp_header(FILE *src, FILE *dest);
 uint get_bmp_pixel_offset(FILE *fptr);
+void encode_byte_to_lsb(char data, FILE *fptr_src_image, FILE *fptr_stego_image);
 
 #endif
