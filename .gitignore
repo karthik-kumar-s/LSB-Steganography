@@ -1,9 +1,12 @@
-# Compiled binaries
+# Binaries
 encode
 decode
 
-# Output images
+# Generated images
 *.bmp
+
+# Decoded output
+decoded.txt
 
 # Object files
 *.o
