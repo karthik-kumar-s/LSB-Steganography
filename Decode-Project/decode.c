@@ -1,38 +1,65 @@
 #include "decode.h"
 
-// Main decoding controller
+// Read BMP pixel data offset (same logic as encoder) 
+uint get_bmp_pixel_offset(FILE *fptr)
+{
+    unsigned char b[4];
+
+    fseek(fptr, 10, SEEK_SET);
+    fread(b, 1, 4, fptr);
+
+    return b[0] |
+           (b[1] << 8) |
+           (b[2] << 16) |
+           (b[3] << 24);
+}
+
+// Main decoding controller 
 Status do_decoding(DecodeInfo *decInfo)
 {
-    // Open stego image
+    uint offset;
+
+    // Open stego image 
     if (open_files(decInfo) == e_failure)
         return e_failure;
 
-    // Skip BMP header (first 54 bytes)
-    fseek(decInfo->fptr_stego_image, BMP_HEADER_SIZE, SEEK_SET);
+    // Get actual BMP pixel offset 
+    offset = get_bmp_pixel_offset(decInfo->fptr_stego_image);
 
-    // Decode and verify magic string
+    // Move file pointer to start of encoded data 
+    fseek(decInfo->fptr_stego_image, offset, SEEK_SET);
+
+    // Decode and verify magic string 
     if (decode_magic_string(decInfo) == e_failure)
     {
         printf("Magic string mismatch\n");
         return e_failure;
     }
-    // Decode secret file size
+
+    // Decode secret file size 
     decode_secret_file_size(decInfo);
     printf("Decoded secret file size: %u bytes\n",
            decInfo->secret_file_size);
 
-    decode_secret_file_extn_size(decInfo);
-    decode_secret_file_extn(decInfo);
+    
+    decInfo->fptr_output = fopen("decoded.txt", "wb");
+    if (decInfo->fptr_output == NULL)
+    {
+        perror("fopen");
+        return e_failure;
+    }
+
+    // Decode secret file data 
     decode_secret_file_data(decInfo);
 
+    printf("Decoding successful\n");
     return e_success;
 }
 
-// Open stego image file
+// Open stego image file 
 Status open_files(DecodeInfo *decInfo)
 {
     decInfo->fptr_stego_image = fopen(decInfo->stego_image_fname, "rb");
-
     if (decInfo->fptr_stego_image == NULL)
     {
         perror("fopen");
@@ -40,7 +67,8 @@ Status open_files(DecodeInfo *decInfo)
     }
     return e_success;
 }
-// Decode one byte from 8 image bytes
+
+// Decode one byte from 8 image bytes 
 Status decode_lsb_to_byte(char *data, FILE *fptr)
 {
     char image_byte;
@@ -48,20 +76,21 @@ Status decode_lsb_to_byte(char *data, FILE *fptr)
 
     for (int i = 0; i < 8; i++)
     {
-        fread(&image_byte, 1, 1, fptr); // Read one image byte
+        fread(&image_byte, 1, 1, fptr);
         *data = (*data << 1) | (image_byte & 1);
     }
     return e_success;
 }
 
-// Decode and verify magic string
+// Decode and verify magic string 
 Status decode_magic_string(DecodeInfo *decInfo)
 {
     char magic[strlen(MAGIC_STRING) + 1];
 
     for (int i = 0; i < strlen(MAGIC_STRING); i++)
     {
-        decode_lsb_to_byte(&magic[i], decInfo->fptr_stego_image);
+        decode_lsb_to_byte(&magic[i],
+                           decInfo->fptr_stego_image);
     }
 
     magic[strlen(MAGIC_STRING)] = '\0';
@@ -72,7 +101,7 @@ Status decode_magic_string(DecodeInfo *decInfo)
     return e_success;
 }
 
-// Decode secret file size (stored using 32 bits)
+// Decode secret file size (32 bits) 
 Status decode_secret_file_size(DecodeInfo *decInfo)
 {
     char image_byte;
@@ -88,60 +117,15 @@ Status decode_secret_file_size(DecodeInfo *decInfo)
     return e_success;
 }
 
-// Decode secret file extension size
-Status decode_secret_file_extn_size(DecodeInfo *decInfo)
-{
-    char image_byte;
-    decInfo->extn_size = 0;
-
-    // Extension size is stored using 32 bits
-    for (int i = 0; i < 32; i++)
-    {
-        fread(&image_byte, 1, 1, decInfo->fptr_stego_image);
-        decInfo->extn_size =
-            (decInfo->extn_size << 1) | (image_byte & 1);
-    }
-
-    return e_success;
-}
-
-// Decode secret file extension and create output file
-Status decode_secret_file_extn(DecodeInfo *decInfo)
-{
-    // Decode extension characters
-    for (uint i = 0; i < decInfo->extn_size; i++)
-    {
-        decode_lsb_to_byte(&decInfo->secret_extn[i],
-                           decInfo->fptr_stego_image);
-    }
-
-    // Null terminate extension string
-    decInfo->secret_extn[decInfo->extn_size] = '\0';
-
-    // Create output file name (decoded.txt, decoded.c, etc)
-    sprintf(decInfo->output_fname, "decoded%s",
-            decInfo->secret_extn);
-
-    // Open output file
-    decInfo->fptr_output = fopen(decInfo->output_fname, "wb");
-    if (decInfo->fptr_output == NULL)
-    {
-        perror("fopen");
-        return e_failure;
-    }
-
-    return e_success;
-}
-
-// Decode secret file data and write to output file
+// Decode secret file data 
 Status decode_secret_file_data(DecodeInfo *decInfo)
 {
     char ch;
 
-    // Decode each byte of secret file
     for (uint i = 0; i < decInfo->secret_file_size; i++)
     {
-        decode_lsb_to_byte(&ch, decInfo->fptr_stego_image);
+        decode_lsb_to_byte(&ch,
+                           decInfo->fptr_stego_image);
         fwrite(&ch, 1, 1, decInfo->fptr_output);
     }
 
