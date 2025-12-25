@@ -1,0 +1,9 @@
+# Compiled binaries
+encode
+decode
+
+# Output images
+*.bmp
+
+# Object files
+*.o
